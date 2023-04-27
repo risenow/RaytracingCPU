@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "b65c06f6-9b7f-434c-8562-efbd51565c6c": {
+      "ProjectGuid": "b65c06f6-9b7f-434c-8562-efbd51565c6c",
+      "DisplayName": "RaytracingCPU",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
