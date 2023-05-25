@@ -5,7 +5,7 @@
 
 class AABB {
 private:
-    static constexpr double _doubleMin = std::numeric_limits<double>::min();
+    static constexpr double _doubleMin = -std::numeric_limits<double>::max();
     static constexpr double _doubleMax = std::numeric_limits<double>::max();
 public:
     AABB() : m_Min(vec3(_doubleMax, _doubleMax, _doubleMax)), m_Max(vec3(_doubleMin, _doubleMin, _doubleMin)) {}

@@ -30,7 +30,9 @@ public:
         }
 
         virtual bool hit(const Ray& ray, double tMin, double tMax, HitInfo& hitInfo) const {
-            return left->hit(ray, tMin, hitInfo.t, hitInfo)&& right->hit(ray, tMin, hitInfo.t, hitInfo);
+            bool leftHit = left->hit(ray, tMin, hitInfo.t, hitInfo);
+            bool rightHit = right->hit(ray, tMin, hitInfo.t, hitInfo);
+            return leftHit || rightHit;
         }
     };
 
@@ -61,9 +63,11 @@ public:
 #define NODE(hittable) ((Node*)(hittable))
 #define BINS_COUNT 8
     void buildNode(Node* node, const AABB& cbb) {
-        if (node->objsEnd - node->objsBegin <= 1) {
-            return;
-        }
+
+        //warning!!!
+        //if (node->objsEnd - node->objsBegin <= 1) {
+        //    return;
+        //}
 
 
         vec3 extent = cbb.extent();
@@ -91,8 +95,14 @@ public:
                 assert(false);
         }
 
-        //extend all bins bbs by small amount (???)
-        //
+        static const vec3 epsOffset = vec3(0.001, 0.001, 0.001);
+        for (Bin& bin : bins)
+        {
+            bin.cbb.m_Max += epsOffset;
+            bin.cbb.m_Min += -epsOffset;
+            bin.bb.m_Max += epsOffset;
+            bin.bb.m_Min += -epsOffset;
+        }
 
         int leftCount = 0;
         AABB temp;
@@ -131,13 +141,14 @@ public:
                 if (binIndex >= splitIndex) {
                     AABB obj2BB;
 
-                    while (m_Objects[j]->boundingBox(obj2BB) && calcBinIndex(objBB.center(), cbb, binsLength, axisIndex) >= splitIndex && i < j) {
+                    while (m_Objects[j]->boundingBox(obj2BB) && calcBinIndex(obj2BB.center(), cbb, binsLength, axisIndex) >= splitIndex && i < j) {
                         j--;
                     }
 
                     if (i == j) {
                         break;
                     }
+
                     std::swap(m_Objects[i], m_Objects[j]);
                 }
             }
@@ -172,7 +183,7 @@ public:
             node->left = childNode;
         }
 
-        if (j < node->objsEnd - 1) {
+        if (j <= node->objsEnd - 1) {
             Hittable* childNode = nullptr;
 
             if (node->objsEnd - j > 1) {
@@ -244,7 +255,7 @@ private:
 
             AABB objBB;
             if (obj->boundingBox(objBB))
-                bb.extend(bb.center());
+                bb.extend(objBB.center());
         }
     }
 };

@@ -11,6 +11,7 @@
 #include "DiffuseMaterial.h"
 #include "MetalMaterial.h"
 #include "DielectricMaterial.h"
+#include "BVH.h"
 
 static constexpr double aspectRatio3_2 = 3.0 / 2.0; 
 static constexpr double aspectRatio16_9 = 16.0/9.0; 
@@ -26,6 +27,14 @@ struct raytracing_state {
     Camera camera;
 } rt_state;
 
+struct raytracing_state2
+{
+    //world
+    BVH world;
+    
+    //camera
+    Camera camera;
+};
 
 
 double clampNegPosToZeroPosOne(double v) {
@@ -36,7 +45,7 @@ color NormalToColor(const vec3& n) {
     return color(clampNegPosToZeroPosOne(n[0]), clampNegPosToZeroPosOne(n[1]), clampNegPosToZeroPosOne(n[2]));
 }
 
-color CalcRayLighting(const Ray& r, const raytracing_state& rt_state, int depth) {
+color CalcRayLighting(const Ray& r, const raytracing_state2& rt_state, int depth) {
     if (depth <= 0)
         return color(0, 0, 0);
 
@@ -94,7 +103,7 @@ void SetupScene1(raytracing_state& rt_state) {
         make_unique2<Hittable, SphereHittable>(point3(1.0, 0.0, -1.0), 0.5, material_right) });
 }
 
-void SetupScene2(raytracing_state& rt_state) {
+void SetupScene2(raytracing_state2& rt_state) {
     point3 origin = point3(3, 3, 2);
     point3 lookat = point3(0, 0, -1);
     double focusDist = (lookat - origin).length();
@@ -106,10 +115,10 @@ void SetupScene2(raytracing_state& rt_state) {
     auto material_left = make_shared<DielectricMaterial>(1.5);
     auto material_right = make_shared<MetalMaterial>(color(0.8, 0.6, 0.2));
 
-    rt_state.world = HittableList({ make_unique2<Hittable, SphereHittable>(point3(0.0, -100.5, -1.0), 100.0, material_ground),
+    rt_state.world = BVH({ make_unique2<Hittable, SphereHittable>(point3(0.0, -100.5, -1.0), 100.0, material_ground),
         make_unique2<Hittable, SphereHittable>(point3(0.0, 0.0, -1.0), 0.5, material_center),
         make_unique2<Hittable, SphereHittable>(point3(-1.0, 0.0, -1.0), 0.5, material_left),
-        make_unique2<Hittable, SphereHittable>(point3(-1.0, 0.0, -1.0), -0.45, material_left),
+        make_unique2<Hittable, SphereHittable>(point3(-1.005, 0.0, -1.0), -0.45, material_left),
         make_unique2<Hittable, SphereHittable>(point3(1.0, 0.0, -1.0), 0.5, material_right) });
 
     bool dbg = true;
@@ -176,7 +185,7 @@ void SetupSceneFinal1(raytracing_state& rt_state) {
 }
 
 auto GetRaytracingSampleFunc(int width, int height) {
-    static raytracing_state rt_state{};
+    static raytracing_state2 rt_state{};
     SetupScene2(rt_state);
     //SetupSceneFinal1(rt_state);
 
